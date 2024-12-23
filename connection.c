@@ -73,7 +73,6 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
       while(pagina[contador] != '>') ++contador;
 
       tagAux = retornaNomeTag(2,substring(pagina,InicioTag+1,contador), &taglen);
-      printf("Comparação entre: %s e %s  == %d ", tagAux,tag,strcmp(tagAux,tag));
 
       if(strcmp(tagAux,tag) == 0)
       {
@@ -83,7 +82,6 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
 
         if(strcmp(tagAux,tag) == 0 && (strcmp(id,idAux) == 0 || qArgumentos == 1))
         {
-          printf("entrei aqui (0)\n");
 
           //buscando o fechamento de uma Tag
           while(1)
@@ -93,28 +91,22 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
               finalTag = contador;
               while(pagina[contador] != '>') contador++;
               auxiliar = substring(pagina,finalTag+1,contador);
-              printf("Auxiliar: %s",auxiliar);
-              printf("Tag nome: %s",retornaNomeTag(1,auxiliar));
 
+/*               printf("Comparação entre: %s e %s  == %d \n", retornaNomeTag(1,auxiliar),tag,strcmp(retornaNomeTag(1,auxiliar),tag));
+              printf("Contador: %d char: %c \n",contador,pagina[contador]);
+ */
               if(strcmp(retornaNomeTag(1,auxiliar),tag) == 0)
               {
-                  printf("entrei aqui (2)\n");
-                  printf("Qtags: %d||",qTags);
-                  printf("Auxiliar: %s",auxiliar);
-                  printf("tag: %s",tag);
 
                   qTags++;
+                  *tags =  realloc(*tags,(sizeof(char*)) * qTags);
+                  auxiliar = substring(pagina,InicioTag,contador);
+                  tags[qTags] = malloc(sizeof(char) * BUFFER);
+                  tags[qTags] = auxiliar;
 
-                  *tags = (char *) realloc(*tags,(sizeof(char)) * qTags);
-                  auxiliar = substring(pagina,InicioTag,finalTag);
-                  aux = strlen(auxiliar);
-                  printf("Alocado: %s||",auxiliar);
-                  printf("StringLen: %d||",aux);
-                  tags[qTags-1] = (char *)malloc(sizeof(char *) * aux);
-                  tags[qTags-1] == auxiliar;
+
                   break;
               }
-
             }
             contador++;
           };
@@ -124,6 +116,9 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
     }
      ++contador;
   }
+  for(contador = 1; contador <= qTags; ++contador)
+     printf("Reposta final: %s\n",tags[contador]);
+
   return "Finalizado";
 }
 
@@ -133,13 +128,12 @@ char * retornaIdTag(int qArguments,char * tag, ...)
   char * retorno; 
   va_list list;
 
-  retorno = (char *) malloc(1 * sizeof(char));
+  retorno = (char *) malloc(BUFFER * sizeof(char));
   position = strcspn(tag,"id") + 4;
   strlen=0;
   
   while (tag[position] != DQUOTES && tag[position] != '\0')
   {
-    retorno = (char *) realloc( retorno, ((strlen + 1 )* sizeof(char)) );
     retorno[strlen++] = tag[position++];
   }
 
@@ -159,10 +153,12 @@ char * retornaIdTag(int qArguments,char * tag, ...)
 char * retornaNomeTag(int qArguments,char * tag, ...)
 {
     int position,strlen, *pstrlen; 
-    char retorno[BUFFER], *auxiliar; 
+    char * retorno; 
     va_list list;
 
+    retorno = (char *) malloc(BUFFER * sizeof(char));
     strlen=0;
+   /*  printf("Entrei aqui (5)"); */
     while (tag[strlen] != ' ' && tag[strlen] != '\0' && tag[strlen] != '>')
     {
       retorno[strlen] = tag[strlen++];
@@ -178,7 +174,7 @@ char * retornaNomeTag(int qArguments,char * tag, ...)
     }
 
     retorno[strlen] = '\0';
-    return retorno;
+    return retorno; 
 }
 /*
   A função retorna uma substring que vai desde a posInicial até a posFinal
@@ -188,16 +184,10 @@ char * substring(char * string, int posInicial, int posFinal)
     char * copia; 
     int contador = 0; 
 
-    copia = (char *) malloc(1 * sizeof(char));
-
-    
-    /* printf("||Posicao inical: %d ||",posInicial);
-    printf("||Posicao inical: %d ||",posInicial);
-    printf("||String: %s||",string); */
+    copia = (char *) malloc(BUFFER * sizeof(char));
 
     while(posInicial <= posFinal)
     {
-      copia = (char *) realloc( copia, ((contador + 1 )* sizeof(char)) );
       copia[contador] = string[posInicial];
       contador++;
       posInicial++;

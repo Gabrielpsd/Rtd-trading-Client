@@ -29,7 +29,7 @@ int main(int argc , char **argv)
     //realizaGetEmUmaPagina("https://bvmf.bmfbovespa.com.br/cias-listadas/Titulos-Negociaveis/DetalheTitulosNegociaveis.aspx?or=res&cb=ITUB&tip=I&idioma=pt-BR");
     buscaTag(" <CATALOG id=\"abcd\">\
   <CD>\
-    <TITLE>Empire Burlesque</TITLE>\
+    <TITLE>mpire Burlesque</TITLE>\
     <ARTIST>Bob Dylan</ARTIST>\
     <COUNTRY>USA</COUNTRY>\
     <COMPANY>Columbia</COMPANY>\
@@ -181,7 +181,7 @@ int main(int argc , char **argv)
     <YEAR>1987</YEAR>\
   </CD>\
   <CD>\
-    <TITLE>Private Dancer</TITLE>\
+    <TITLE2>Private Dancer</TITLE2>\
     <ARTIST>Tina Turner</ARTIST>\
     <COUNTRY>UK</COUNTRY>\
     <COMPANY>Capitol</COMPANY>\
@@ -235,6 +235,6 @@ int main(int argc , char **argv)
     <COMPANY>EMI</COMPANY>\
     <PRICE>8.20</PRICE>\
     <YEAR>1987</YEAR>\
-  </CD> </CATALOG>",1,"CATALOG");
+  </CD> </CATALOG>",1,"TITLE");
 	return 0;
 }
