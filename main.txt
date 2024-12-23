@@ -1,0 +1,47 @@
+ /* Declara��o de vari�veis */
+	
+	/* Nome do arquivo que cont�m as informa��es dos menus */		
+	char rotulos[30] = "menu.txt";
+	/* Nome do arquivo que cont�m as configura��es dos menus */	
+	char configuracoes[30] = "config.txt";
+	/* Armazena o Id selecionado */	
+	int IDselecionado;
+	
+	/* Artif�cio para silenciar warning */
+	argc = argc;
+	argv = argv;
+	
+	/* Limpa a janela do console */
+	clrscr(); 
+	
+	/* Muda o t�tulo da janela do console*/
+	setTituloConsole(TITULODOCONSOLE);
+	
+	/* Desativa o cursor no menu */
+	_setcursortype(_NOCURSOR); 
+	
+	/* Chama a fun��o menu e armazena o Id selecionado */
+	IDselecionado = Menu(rotulos, configuracoes);
+	
+	/* Ativa o cursor no menu */
+	_setcursortype(_NORMALCURSOR); 
+	
+	/* Volta o CMD para as cores padr�es */
+	textbackground(BLACK);
+	textcolor(LIGHTGRAY);
+	
+	/* Limpa a janela do console */
+	clrscr(); 
+	
+	/* Verifica se ouve erro ao abrir o arquivo */
+	if(IDselecionado)
+	{
+		/* Escreve o valor selecionado pelo menu */
+		gotoxy(COLUNAINICIODAJANELA, LINHAINICIODAJANELA);
+		printf("%d", IDselecionado);
+	}
+	else
+	{
+		gotoxy(COLUNAINICIODAJANELA, LINHAINICIODAJANELA);
+		printf("Erro ao abrir arquivo!");
+	} 

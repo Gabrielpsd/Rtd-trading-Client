@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "locale.h": "c",
+        "console_v1.5.5.h": "c",
+        "progmenus.h": "c",
+        "connection.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "ezxml.h": "c"
+    }
+}
