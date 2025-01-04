@@ -6,6 +6,7 @@
         "connection.h": "c",
         "stdio.h": "c",
         "stdlib.h": "c",
-        "ezxml.h": "c"
+        "ezxml.h": "c",
+        "curl.h": "c"
     }
 }

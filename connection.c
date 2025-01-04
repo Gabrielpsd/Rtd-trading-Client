@@ -1,44 +1,9 @@
 
-#include <curl\curl.h> /*  */
+#include <curl\curl.h> /* CURL, CURLCode, curl_easy_setopt , curl_easy_init, curl_easy_strerror, curl_easy_cleanup*/
 #include <stdlib.h> /* realloc, malloc, free*/
-#include <stdio.h> /* null ,fopen, fwrite */
-#include <string.h> /*strlen, */
+#include <stdio.h> /* null ,fopen , fprintf*/
+#include <string.h> /*strlen, memcpy*/
 #include "connection.h" /* FIle */
-
-char * realizaGetEmUmaPagina(char * URL)
-{
-  CURL *curl;
-  CURLcode res; 
-
-  curl_global_init(CURL_GLOBAL_DEFAULT);
-  
-  curl = curl_easy_init();
-
-  if(curl)
-  {
-    curl_easy_setopt(curl, CURLOPT_URL, URL);  
-
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
-
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-
-    curl_easy_setopt(curl, CURLOPT_CA_CACHE_TIMEOUT, 604800L);
- 
-    res = curl_easy_perform(curl);
-
-    if(res != CURLE_OK)
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",
-              curl_easy_strerror(res));
-
-    curl_easy_cleanup(curl);  
-
-  } 
-  curl_global_cleanup();
- 
-  return "res";
-}
 
 char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
 {
@@ -78,7 +43,10 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
       {
         // pego id da tag caso seja passado para realizar a busca
         if(qArgumentos == 2)
-          idAux = retornaIdTag(2,substring(auxiliar,taglen,strlen(auxiliar)), &idLen);
+        {
+
+          idAux = retornaIdTag(2,substring(pagina,InicioTag+1,contador), &idLen);
+        }
 
         if(strcmp(tagAux,tag) == 0 && (strcmp(id,idAux) == 0 || qArgumentos == 1))
         {
@@ -120,6 +88,41 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
      printf("Reposta final: %s\n",tags[contador]);
 
   return "Finalizado";
+}
+
+CURLcode realizaGetEmUmaPagina(char * URL, struct MemoryStruct  * resposta)
+{
+  CURL *curl;
+  CURLcode res; 
+
+  curl = curl_easy_init();
+
+  if(curl)
+  {
+    curl_easy_setopt(curl, CURLOPT_URL, URL);  
+
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36");
+
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+
+    curl_easy_setopt(curl, CURLOPT_CA_CACHE_TIMEOUT, 604800L);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,write_data);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)resposta);
+ 
+    res = curl_easy_perform(curl);
+
+    if(res != CURLE_OK)
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(res));
+
+    curl_easy_cleanup(curl);  
+
+  } 
+  return res;
 }
 
 char * retornaIdTag(int qArguments,char * tag, ...)
@@ -176,9 +179,7 @@ char * retornaNomeTag(int qArguments,char * tag, ...)
     retorno[strlen] = '\0';
     return retorno; 
 }
-/*
-  A função retorna uma substring que vai desde a posInicial até a posFinal
-*/
+
 char * substring(char * string, int posInicial, int posFinal)
 {
     char * copia; 
@@ -197,15 +198,25 @@ char * substring(char * string, int posInicial, int posFinal)
     return copia;
 }
 
-/* static size_t my_fwrite(void *buffer, size_t size, size_t nmemb,void *stream)
+static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 {
-  struct File *out = (struct File *)stream;
+  size_t tamanhoReal = size * nmemb;
+  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+ 
+  char *ptr;
 
-  if(!out->stream) {
-     open file for writing 
-    out->stream = fopen(out->filename, "wb");
-    if(!out->stream)
-      return 0;
+  ptr = realloc(mem->memory, mem->size + tamanhoReal + 1);
+
+  if(!ptr)
+  {
+    return 0; /* out of memory*/
   }
-  return fwrite(buffer, size, nmemb, out->stream);
-} */
+
+  mem->memory = ptr;
+  memcpy(&(mem->memory[mem->size]), buffer, tamanhoReal);
+  mem->size += tamanhoReal ;
+  mem->memory[mem->size] = 0;
+
+
+  return size * nmemb;
+}
