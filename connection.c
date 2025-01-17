@@ -3,12 +3,36 @@
 #include <stdlib.h> /* realloc, malloc, free*/
 #include <stdio.h> /* null ,fopen , fprintf*/
 #include <string.h> /*strlen, memcpy*/
-#include "connection.h" /* FIle */
+#include "connection.h" /* FIle */ 
 
-char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
+OPCAOB3 alocaOpcoes(char * tag)
+{
+  int posicoesTds[QUANTIDADETD] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  OPCAOB3 opcao;
+  int contador;
+  char * ultimatag, *ptr;
+  size_t i;
+
+  contador = 0;
+  for(ptr = tag;(ultimatag = strstr(ptr,TAGTABELA)); ptr = ultimatag + 1)
+  {
+    posicoesTds[contador] =  ptr - tag;
+    contador++;
+  }
+
+    opcao.codigo = substring(tag,posicoesTds[1]+2,posicoesTds[2]-4);
+    opcao.preco = atof(substring(tag,posicoesTds[9]+16,posicoesTds[10]-4));
+
+    opcao.vencimento = substring(tag,posicoesTds[7]+15,posicoesTds[8]-4);
+  
+  return opcao;
+
+}
+
+void buscaTag(char * pagina, OPCOES *opcaoAlocar, int qArgumentos, char * tag, ...)
 {
   va_list list; 
-  char *id, *auxiliar, *tagAux, *idAux, **tags;
+  char *id, *auxiliar, *tagAux, *classeAuxiliar, **tags;
   int contador,InicioTag, finalTag, taglen, idLen, qTags, aux;
 
   // pega o segundo argumento passado para a função caso exista, sendo essa sempre o Id de uma Tag
@@ -19,18 +43,22 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
   }
   else
   {
-    idAux = malloc(sizeof(char*)*1);
-    *idAux = '0';
+    classeAuxiliar = malloc(sizeof(char*)*1);
+    *classeAuxiliar = '0';
     id = malloc(sizeof(char*)*1);
     *id = '0';
   }
 
-  tags = malloc(sizeof(char*)*1);
-  contador = 0; 
+
+  tags = malloc(sizeof(char*)*QUANTIDADETAGS);
+  contador = INICIOTRATAMENTO;
   qTags = 0;
 
   while(pagina[contador] != EOF)
   {
+    if(pagina[contador] == '<' && pagina[contador+1] == '/' && pagina[contador+2] == 'b' && pagina[contador+3] == 'o' && pagina[contador+4] == 'd' && pagina[contador+5] == 'y' && pagina[contador+6] == '>')
+      break;
+
     // abertura de uma tag
     if(pagina[contador] == '<')
     {
@@ -38,19 +66,17 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
       while(pagina[contador] != '>') ++contador;
 
       tagAux = retornaNomeTag(2,substring(pagina,InicioTag+1,contador), &taglen);
-
+      /* printf("Encontrei a tag %s || posi: %d\n",tagAux,contador); */
       if(strcmp(tagAux,tag) == 0)
       {
-        // pego id da tag caso seja passado para realizar a busca
+        // pego a classe da tag caso seja passado para realizar a busca
         if(qArgumentos == 2)
         {
-
-          idAux = retornaIdTag(2,substring(pagina,InicioTag+1,contador), &idLen);
+          classeAuxiliar = reotornaClasse(2,substring(pagina,InicioTag+1,contador), &idLen);
         }
 
-        if(strcmp(tagAux,tag) == 0 && (strcmp(id,idAux) == 0 || qArgumentos == 1))
+        if(strcmp(tagAux,tag) == 0 && (strcmp(id,classeAuxiliar) == 0 || qArgumentos == 1))
         {
-
           //buscando o fechamento de uma Tag
           while(1)
           {
@@ -59,35 +85,54 @@ char * buscaTag(char * pagina, int qArgumentos, char * tag, ...)
               finalTag = contador;
               while(pagina[contador] != '>') contador++;
               auxiliar = substring(pagina,finalTag+1,contador);
-
-/*               printf("Comparação entre: %s e %s  == %d \n", retornaNomeTag(1,auxiliar),tag,strcmp(retornaNomeTag(1,auxiliar),tag));
-              printf("Contador: %d char: %c \n",contador,pagina[contador]);
- */
               if(strcmp(retornaNomeTag(1,auxiliar),tag) == 0)
               {
-
-                  qTags++;
-                  *tags =  realloc(*tags,(sizeof(char*)) * qTags);
                   auxiliar = substring(pagina,InicioTag,contador);
-                  tags[qTags] = malloc(sizeof(char) * BUFFER);
+                  if(contaTags(auxiliar,"td") == 16)
+                  {
+                    opcaoAlocar->opcoes[opcaoAlocar->quantidade] = alocaOpcoes(auxiliar);
+                    opcaoAlocar->quantidade++;
+                  }
+                  /* tags[qTags] = malloc(sizeof(char) * BUFFER);
                   tags[qTags] = auxiliar;
-
+                  qTags++; */
 
                   break;
               }
+
             }
-            contador++;
+            contador++; 
           };
 
         }
+
       }
     }
-     ++contador;
+    ++contador;
   }
-  for(contador = 1; contador <= qTags; ++contador)
-     printf("Reposta final: %s\n",tags[contador]);
 
-  return "Finalizado";
+
+}
+
+int contaTags(char * tag, char * tagBuscar)
+{
+  int contador, chuteInicial, i;
+  char * temp; 
+
+  contador = 0;
+
+  for(temp = tag;*temp;++temp)
+  {
+    chuteInicial = 1;
+    for(i=0;tagBuscar[i];++i)
+    {
+      if(tagBuscar[i] != temp[i])
+        chuteInicial = 0;
+    }
+    contador += chuteInicial;
+  }
+
+  return contador;
 }
 
 CURLcode realizaGetEmUmaPagina(char * URL, struct MemoryStruct  * resposta)
@@ -125,19 +170,30 @@ CURLcode realizaGetEmUmaPagina(char * URL, struct MemoryStruct  * resposta)
   return res;
 }
 
-char * retornaIdTag(int qArguments,char * tag, ...)
+char * reotornaClasse(int qArguments,char * tag, ...)
 {
   int position,strlen, *pstrlen; 
   char * retorno; 
   va_list list;
 
   retorno = (char *) malloc(BUFFER * sizeof(char));
-  position = strcspn(tag,"id") + 4;
+  position = 0;
   strlen=0;
   
-  while (tag[position] != DQUOTES && tag[position] != '\0')
+  while (tag[position] != '>' && tag[position] != '\0')
   {
-    retorno[strlen++] = tag[position++];
+    if(tag[position] == 'c' && tag[position+1] == 'l' && tag[position+2] == 'a' && tag[position+3] == 's' && tag[position+4] == 's' && tag[position+5] == '=') 
+    {
+      position+=7;
+      while(tag[position] != '"' && tag[position] != '\0')
+      {
+        retorno[strlen] = tag[position];
+        position++;
+        strlen++;
+      }
+      break;
+    }
+    position++;
   }
 
   if(qArguments == 2 )
@@ -147,9 +203,46 @@ char * retornaIdTag(int qArguments,char * tag, ...)
     va_end(list);
 
     *pstrlen = strlen; 
-    retorno[strlen] = '\0';
   }
+  retorno[strlen] = '\0';
+  return retorno;
+}
+
+char * retornaIdTag(int qArguments,char * tag, ...)
+{
+  int position,strlen, *pstrlen; 
+  char * retorno; 
+  va_list list;
+
+  retorno = (char *) malloc(BUFFER * sizeof(char));
+  position = 0;
+  strlen=0;
   
+  while (tag[position] != '>' && tag[position] != '\0')
+  {
+    if(tag[position] == 'i' && tag[position+1] == 'd' && tag[position+2] == '=')
+    {
+      position+=4;
+      while(tag[position] != '"' && tag[position] != '\0')
+      {
+        retorno[strlen] = tag[position];
+        position++;
+        strlen++;
+      }
+      break;
+    }
+    position++;
+  }
+
+  if(qArguments == 2 )
+  {
+    va_start(list,tag);
+    pstrlen = va_arg(list, int * );
+    va_end(list);
+
+    *pstrlen = strlen; 
+  }
+  retorno[strlen] = '\0';
   return retorno;
 }
 
@@ -161,7 +254,6 @@ char * retornaNomeTag(int qArguments,char * tag, ...)
 
     retorno = (char *) malloc(BUFFER * sizeof(char));
     strlen=0;
-   /*  printf("Entrei aqui (5)"); */
     while (tag[strlen] != ' ' && tag[strlen] != '\0' && tag[strlen] != '>')
     {
       retorno[strlen] = tag[strlen++];
@@ -175,25 +267,25 @@ char * retornaNomeTag(int qArguments,char * tag, ...)
 
       *pstrlen = strlen; 
     }
-
     retorno[strlen] = '\0';
     return retorno; 
 }
 
-char * substring(char * string, int posInicial, int posFinal)
+char * substring(char * string, long int posInicial,long  int posFinal)
 {
     char * copia; 
     int contador = 0; 
-
-    copia = (char *) malloc(BUFFER * sizeof(char));
-
+   copia = (char *) malloc(BUFFER * sizeof(char));
+    
     while(posInicial <= posFinal)
     {
       copia[contador] = string[posInicial];
+      
       contador++;
+      ;
       posInicial++;
+      
     }
-
     copia[contador] = '\0';
     return copia;
 }

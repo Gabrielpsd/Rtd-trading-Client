@@ -24,20 +24,35 @@ _setcursortype(); textbackground(); textcolor(); */
 int main(int argc , char **argv)
 {   
     struct MemoryStruct  resposta = {0};
+    char ** tags;
+    OPCOES opcoes;
+    int contador=0;
+    const char *url = "https://bvmf.bmfbovespa.com";
 
+    setlocale(LC_ALL, "Portuguese");
     /* artificio para remover warning*/
 	argc = argc;
 	argv = argv;
 
     resposta.size = 0;
+
     resposta.memory = (char *) malloc(1);
+    opcoes.opcoes = (OPCAOB3 *) malloc(sizeof(OPCAOB3) * QUANTIDADETAGS);
+    opcoes.quantidade = 0;
 
-    realizaGetEmUmaPagina("https://bvmf.bmfbovespa.com.br/cias-listadas/Titulos-Negociaveis/DetalheTitulosNegociaveis.aspx?or=res&cb=ITUB&tip=I&idioma=pt-BR", &resposta);
+    realizaGetEmUmaPagina("https://bvmf.bmfbovespa.com.br/cias-listadas/Titulos-Negociaveis/DetalheTitulosNegociaveis.aspx?or=res&cb=PETR&tip=I&idioma=pt-BR", &resposta);
+    buscaTag(resposta.memory,&opcoes,2,"tr", "GridBovespaItemStyle");
 
-    printf("%s\n",resposta.memory);
-    printf("%d\n",resposta.size);
+    printf("Quantidade de opcoes: %d\n",opcoes.quantidade);
 
-    buscaTag(resposta.memory,2,"table", "ctl00_contentPlaceHolderConteudo_ctl00_grdDados_LoadingTemplate");
+    for (contador = 0; contador < opcoes.quantidade; contador++)
+    {
+        printf("Codigo: %s\n",opcoes.opcoes[contador].codigo);
+        printf("Vencimento: %s\n",opcoes.opcoes[contador].vencimento);
+        printf("Preco strike: %.2f\n",opcoes.opcoes[contador].preco);
+        printf("\n");
+    }
     
+    printf("Execucao finalizada\n");
 	return 0;
 }
