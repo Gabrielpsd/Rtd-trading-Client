@@ -1,0 +1,23 @@
+[
+  object,
+  uuid(36777958-1057-468c-9023-2621a4890c8d),
+  dual,
+  helpstring("IRtdServer Interface")
+]
+__interface IRtdServer : IUnknown
+{
+  HRESULT Init([in] BSTR serverUrl);
+  HRESULT Subscribe([in] BSTR symbol);
+  HRESULT Unsubscribe([in] BSTR symbol);
+  HRESULT Start();
+  
+  [id(0x00000001)]
+  HRESULT OnDataUpdate(
+    [in] BSTR symbol,
+    [in] DOUBLE lastPrice,
+    [in] DOUBLE bidPrice,
+    [in] DOUBLE askPrice,
+    [in] ULONG64 bidQty,
+    [in] ULONG64 askQty
+  );
+};

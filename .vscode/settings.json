@@ -7,6 +7,9 @@
         "stdio.h": "c",
         "stdlib.h": "c",
         "ezxml.h": "c",
-        "curl.h": "c"
+        "curl.h": "c",
+        "sqlite3.h": "c",
+        "webscrapping.h": "c",
+        "rtdconnection.h": "c"
     }
 }
