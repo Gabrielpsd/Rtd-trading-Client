@@ -1,73 +1,74 @@
-#include "rtdConnection.h"
+#include <windows.h>
+#include <stdio.h>
 
-
-HRESULT CreateRtdInstance(_IRtd_ **ppRtd)
+// Callback function for DDE
+HDDEDATA CALLBACK DdeCallback(
+    UINT uType, 
+    UINT uFmt, 
+    HCONV hConv, 
+    HSZ hsz1, 
+    HSZ hsz2, 
+    HDDEDATA hData, 
+    ULONG_PTR dwData1, 
+    ULONG_PTR dwData2) 
 {
-    CLSID clsid;
-    HRESULT hr = CLSIDFromProgID(L"RTDTrading.RTDServer", &clsid);
-HRESULT hr = CoCreateInstance(L"{1B611A56-6802-11D0-A097-00C05BF9F6C6}", NULL, CLSCTX_INPROC_SERVER, L"{272D2E65-05FB-4500-BD7B-5905D5B0A1B8}", (void**)ppRtd);
-    if (FAILED(hr))
-    {
-        printf("Failed to create RTD instance. Error: 0x%08lx\n", hr);
-    }
-    return hr;
+    return NULL;
 }
 
+int requisitaDadosEmTempoReal() {
+    DWORD dwDdeInstance = 0;
+    HSZ hszService = 0, hszTopic = 0;
+    HCONV hConv = NULL;
 
-int executeConnection()
-{
-    HRESULT hr;
-    _IRtd_ *pRtd = NULL;
-    LONG lCookie = 0;
-
-    // Initialize COM
-    hr = CoInitialize(NULL);
-    if (FAILED(hr))
-    {
-        printf("Failed to initialize COM. Error: 0x%08lx\n", hr);
-        return 1;
+    // Initialize DDE
+    UINT result = DdeInitialize(&dwDdeInstance, DdeCallback, APPCLASS_STANDARD, 0);
+    if (result != DMLERR_NO_ERROR) {
+        printf("DDE Initialization failed: 0x%08X\n", result);
+        return -1;
     }
 
-    // Create an RTD instance
-    hr = CreateRtdInstance(&pRtd);
-    if (FAILED(hr))
-    {
-        goto cleanup;
+    // Create string handles for service and topic
+    hszService = DdeCreateStringHandle(dwDdeInstance, "profitchart", CP_WINANSI);
+    hszTopic = DdeCreateStringHandle(dwDdeInstance, "cot!'WINZ24.NEG'", CP_WINANSI); // Replace "TopicName" with the server's topic
+
+    // Connect to the DDE server
+    hConv = DdeConnect(dwDdeInstance, hszService, hszTopic, NULL);
+    if (!hConv) {
+        printf("Failed to connect to DDE server. Error: 0x%08X\n", DdeGetLastError(dwDdeInstance));
+        DdeFreeStringHandle(dwDdeInstance, hszService);
+        DdeFreeStringHandle(dwDdeInstance, hszTopic);
+        DdeUninitialize(dwDdeInstance);
+        return -1;
     }
 
-    // Connect to the RTD server
-    hr = pRtd->lpVtbl->Connect(L"{272D2E65-05FB-4500-BD7B-5905D5B0A1B8}", 1, 0);
-    if (FAILED(hr))
-    {
-        printf("Failed to connect to RTD server. Error: 0x%08lx\n", hr);
-        goto cleanup;
+    printf("Connected to DDE server.\n");
+
+    // Example: Request data from the server
+    HDDEDATA hData = DdeClientTransaction(
+        NULL, 0, 
+        hConv, 
+        DdeCreateStringHandle(dwDdeInstance, "RequestItem", CP_WINANSI), 
+        CF_TEXT, 
+        XTYP_REQUEST, 
+        1000, 
+        NULL);
+
+    if (hData) {
+        // Retrieve the data
+        char *pData = (char *)DdeAccessData(hData, NULL);
+        printf("Received data: %s\n", pData);
+        DdeUnaccessData(hData);
+        DdeFreeDataHandle(hData);
+    } else {
+        printf("Failed to request data. Error: 0x%08X\n", DdeGetLastError(dwDdeInstance));
     }
 
-    // Set up event handling
-    pRtd->lpVtbl->AddRef();
-    lCookie = GetCurrentThreadId();
-    SetLastError(0);
+    // Disconnect and clean up
+    DdeDisconnect(hConv);
+    DdeFreeStringHandle(dwDdeInstance, hszService);
+    DdeFreeStringHandle(dwDdeInstance, hszTopic);
+    DdeUninitialize(dwDdeInstance);
 
-
-    // Request an update
-    hr = pRtd->lpVtbl->RequestUpdate(0.0);
-
-    if (FAILED(hr))
-    {
-        printf("Failed to request RTD update. Error: 0x%08lx\n", hr);
-        goto cleanup;
-    }
-
-    // Keep the main thread running
-    Sleep(INFINITE);
-cleanup:
-    if (pRtd)
-    {
-        pRtd->lpVtbl->Disconnect();
-        pRtd->lpVtbl->Release();
-    }
-
-    CoUninitialize();
-
+    printf("DDE communication completed.\n");
     return 0;
 }

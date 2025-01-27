@@ -10,6 +10,8 @@
         "curl.h": "c",
         "sqlite3.h": "c",
         "webscrapping.h": "c",
-        "rtdconnection.h": "c"
+        "rtdconnection.h": "c",
+        "objbase.h": "c",
+        "windows.h": "c"
     }
 }

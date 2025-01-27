@@ -59,8 +59,8 @@ int main(int argc , char **argv)
     salvandoNoBancoDeDados(opcoes); */
 
     /* executeConnection(); */
-    __uuidof(IHTMLDocument2);
-    IIDFromString(L"{272D2E65-05FB-4500-BD7B-5905D5B0A1B8}", NULL);
+
+    requisitaDadosEmTempoReal();
 
     printf("Execucao finalizada\n");
 	return 0;
