@@ -12,6 +12,10 @@
         "webscrapping.h": "c",
         "rtdconnection.h": "c",
         "objbase.h": "c",
-        "windows.h": "c"
+        "windows.h": "c",
+        "conio_v3.2.4.h": "c",
+        "initguid.h": "c",
+        "exdisp.h": "c",
+        "oaidl.h": "c"
     }
 }
