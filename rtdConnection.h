@@ -1,5 +1,3 @@
-
-#include <windows.h>
 #include <oaidl.h>
 #include <ocidl.h>
 #include <initguid.h>
@@ -12,7 +10,6 @@ DEFINE_GUID(CLSID_MyRTDServer,
 DEFINE_GUID(IID_IRtdServer, 
     0xEC0E6191, 0xDB51, 0x11D3, 0x8F, 0x3E, 0x00, 0xC0, 0x4F, 0x36, 0x51, 0xB8);
 
-    
 typedef HRESULT STDMETHODCALLTYPE QueryInterfacePtr(void* This, REFIID riid, void** ppvObject);
 typedef ULONG STDMETHODCALLTYPE AddRefPtr(void* This);
 typedef ULONG STDMETHODCALLTYPE ReleasePtr(void* This);
@@ -20,7 +17,7 @@ typedef HRESULT STDMETHODCALLTYPE MyRTDUpdate_UpdateNotifyPtr(void* This);
 typedef HRESULT STDMETHODCALLTYPE MyRTDUpdate_HeartbeatPtr(void* This, int* pResponse);
 typedef HRESULT  STDMETHODCALLTYPE ServerStartPtr(IUnknown* Callback);
 typedef HRESULT  STDMETHODCALLTYPE ServerTerminatePtr(void* this);
-typedef HRESULT  STDMETHODCALLTYPE ConnectDataPtr(void* this, LONG TopicID, SAFEARRAY** Strings, VARIANT* NewValue);
-typedef HRESULT  STDMETHODCALLTYPE RefreshDataPtr(void* this, LONG* TopicCount, SAFEARRAY** Data);
+typedef HRESULT  STDMETHODCALLTYPE ConnectDataPtr(void* this, int* TopicID, SAFEARRAY* Strings, VARIANT_BOOL* NewValue);
+typedef HRESULT  STDMETHODCALLTYPE RefreshDataPtr(void* this, int* TopicCount,SAFEARRAY** Strings);
 typedef HRESULT  STDMETHODCALLTYPE DisconnectDataPtr(void* this, LONG TopicID);
-typedef HRESULT  STDMETHODCALLTYPE HeartbeatPtr(void* this, LONG* Result);
+typedef HRESULT  STDMETHODCALLTYPE HeartbeatPtr(void* this, int* Result);
